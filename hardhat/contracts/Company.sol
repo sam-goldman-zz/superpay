@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -16,36 +17,25 @@ contract Company is Ownable {
     //Amount that an employee gets paid each year
     mapping(address=>uint) public salaryAmt;
 
-    function ChangePaymentToken(address _token) external onlyOwner {
+    function changePaymentToken(address _token) external onlyOwner {
         paymentToken = _token;
     }
 
-    function SalaryFrequence(address _employee) public view returns (uint) {
-        return salaryFreq[_employee];
-    } 
-
-    function SalaryAmount(address _employee) public view returns (uint) {
-        return salaryAmt[_employee];
-    } 
-
-    function ChangeSalaryFrequence(address _employee, uint _freq) external onlyOwner {
+    function newEmployee(address _employee, uint _freq, uint _amt) external onlyOwner {
         salaryFreq[_employee] = _freq;
-    } 
-
-    function ChangeSalaryAmount(address _employee, uint _amt) external onlyOwner {
         salaryFreq[_employee] = _amt;
     } 
 
-    function Deposit(address _token, uint _amount) external {
-        require(_token==paymentToken, "Payment system can only accept USDC." );
+    function deposit(address _token, uint _amount) external {
+        require(_token==paymentToken, "Payment system can only accept DAIx." );
         IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), _amount);
     }
 
-    function PayEmployee(address _employee) external onlyOwner {
+    function payEmployee(address _employee) external onlyOwner {
         IERC20(paymentToken).safeTransfer(_employee, Math.ceilDiv(salaryAmt[_employee], salaryFreq[_employee]));
     }
 
-    function ChangeEmployeeAddress(address _former, address _new) external {
+    function changeEmployeeAddress(address _former, address _new) external {
         require(msg.sender==_former || msg.sender==owner(), 
             'Only employer or specific employee can change their payment location.');
         salaryFreq[_new] = salaryFreq[_former];
@@ -54,7 +44,7 @@ contract Company is Ownable {
         delete salaryAmt[_former];
     }
 
-    function FireEmployee(address _employee) external onlyOwner {
+    function fireEmployee(address _employee) external onlyOwner {
         delete salaryFreq[_employee];
         delete salaryAmt[_employee];
     }

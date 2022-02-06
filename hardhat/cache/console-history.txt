@@ -1,0 +1,18 @@
+await company.salaryFreq("0xEB385704Eec88EdD8c9b0167f884B3f915a5E5f3");
+await company.salaryFreq("0xEB385704Eec88EdD8c9b0167f884B3f915a5E5f3);
+await company.salaryFreq("0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D");
+await company.changeEmployeeAddress("0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D", "0xEB385704Eec88EdD8c9b0167f884B3f915a5E5f3");
+await company.salaryFreq("0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D");
+await company.changeSalaryAmount("0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D", 1000);
+await company.changeSalaryFrequency("0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D", 24);
+await company.changeSalaryFrequency("0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D, 24);
+const token = await company.paymentToken();
+const company = await Company.attach("0xdB8d16ab2fb26059E048631eE5A141241E1801C3");
+const Company = await ethers.getContractFactory('Company');
+.exit
+token
+const token = await company.paymentToken();
+await company.changePaymentToken("0xe3cb950cb164a31c66e32c320a800d477019dcff");
+const company = await Company.attach("0xdB8d16ab2fb26059E048631eE5A141241E1801C3");
+const Company = await ethers.getContractFactory('Company');
+.exit

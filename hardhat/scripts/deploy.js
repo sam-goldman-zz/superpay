@@ -1,7 +1,7 @@
 async function main () {
   const Company = await ethers.getContractFactory('Company');
   console.log('Deploying Token...');
-  const company = await Company.deploy(temporaryMaxPublic, adminAddresses);
+  const company = await Company.deploy();
   await company.deployed();
   const address = company.address;
   console.log('Token deployed to:', address);

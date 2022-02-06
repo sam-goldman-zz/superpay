@@ -44,4 +44,18 @@ contract Company is Ownable {
     function PayEmployee(address _employee) external onlyOwner {
         IERC20(_token).safeTransfer(paymentToken, _employee, ceilDiv(salaryAmt, salaryFreq));
     }
+
+    function ChangeEmployeeAddress(address _former, address _new) external {
+        require(msg.sender==_former || msg.sender==owner(), 
+            'Only employer or specific employee can change their payment location.');
+        salaryFreq[_new] = salaryFreq[_former];
+        salaryAmt[_new] = salaryAmt[_former]; 
+        delete salaryFreq[_former];
+        delete salaryAmt[_former];
+    }
+
+    function FireEmployee(address _employee) external onlyOwner {
+        delete salaryFreq[_employee];
+        delete salaryAmt[_employee];
+    }
 }

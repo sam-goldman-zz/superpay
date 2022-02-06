@@ -17,7 +17,7 @@ class HomePageBody extends Component {
             activeStep: this.props.activeStep,
             address: this.props.address,
             walletConnected: this.props.walletConnected,
-            flowRate: this.props.flowRate,
+            flowRate: "",
             streamAddress: null,
             superfluidAddress: "0xCeba7CC9b04696E0Da583Ac1d59C59e6564F9a7B",
             copiedAddress: false,
@@ -25,11 +25,13 @@ class HomePageBody extends Component {
             succesfulContractUpdate: false,
             yearlySalary: 0,
             verificationError: false,
-            verificationErrorMessage: ""
+            verificationErrorMessage: "",
+            succesfulContractVerification: false
         }
         this.UNSAFE_componentWillReceiveProps = this.UNSAFE_componentWillReceiveProps.bind(this)
         this.startStream = this.startStream.bind(this)
         this.updateCompanyAddress = this.updateCompanyAddress.bind(this)
+        this.verifyPayrollContract = this.verifyPayrollContract.bind(this)
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -37,8 +39,7 @@ class HomePageBody extends Component {
             this.setState({
                 activeStep: nextProps.activeStep,
                 address: nextProps.address,
-                walletConnected: nextProps.walletConnected,
-                flowRate: nextProps.flowRate
+                walletConnected: nextProps.walletConnected
             })
         }
     }
@@ -56,10 +57,12 @@ class HomePageBody extends Component {
             verificationError: false
         })
 
+        console.log(this.state.companyAddress)
+        console.log(this.state.address)
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(this.state.companyAddress, Company.abi, signer);
-
+        console.log('got through company contract')
         try {
             const employeeAddress = await contract.salaryAmt(this.state.address);
             if (employeeAddress.toNumber() === 0) {
@@ -73,11 +76,12 @@ class HomePageBody extends Component {
                 const yearlySalary = await contract.salaryAmt(this.state.address);
                 const secondsInYear = 31536000;
                 const etherInUsd = 3000;
-                const newFlowRate = 10 ** 18 * yearlySalary / (etherInUsd * secondsInYear); // Converts USD/yr to Wei/sec
-                // this.setstate flowrate
+                const newFlowRate = (10 ** 18) * yearlySalary / (etherInUsd * secondsInYear); // Converts USD/yr to Wei/sec
+                console.log(newFlowRate)
                 this.setState({
-                    flowRate: newFlowRate,
-                    yearlySalary: yearlySalary
+                    flowRate: parseInt(newFlowRate).toString(),
+                    yearlySalary: Number(yearlySalary),
+                    succesfulContractVerification: true
                 })
             }
         } catch (e) {
@@ -93,16 +97,14 @@ class HomePageBody extends Component {
         try {
             await contract.changeEmployeeAddress(this.state.superfluidAddress);
             console.log('Updating Company Contract')
-            this.setState({
-                succesfulContractUpdate: true
-            })
         } catch (e) {
             console.error(e);
         }
     }
 
     startStream = async () => {
-        this.changeEmployeeAddress();
+
+        await this.changeEmployeeAddress();
 
         const provider = new ethers.providers.JsonRpcProvider("https://eth-kovan.alchemyapi.io/v2/nl2PDNZm065-H3wMj2z1_mvGP81bLfqX");
         console.log(provider)
@@ -181,7 +183,7 @@ class HomePageBody extends Component {
                 </CardContent>
             )
         }
-        if (this.state.activeStep === 1 & !this.state.succesfulContractUpdate & !this.state.verificationError) {
+        if (this.state.activeStep === 1 & !this.state.succesfulContractVerification & !this.state.verificationError) {
             return (
                 <CardContent>
                     <h1>Step 2</h1>
@@ -195,7 +197,7 @@ class HomePageBody extends Component {
                 </CardContent>
             )
         }
-        if (this.state.activeStep === 1 & this.state.succesfulContractUpdate) {
+        if (this.state.activeStep === 1 & this.state.succesfulContractVerification) {
             return (
                 <CardContent>
                     <h1>Step 2</h1>

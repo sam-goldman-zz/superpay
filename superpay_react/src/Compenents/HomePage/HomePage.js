@@ -8,6 +8,8 @@ import { ethers } from "ethers"
 import { Framework } from "@superfluid-finance/sdk-core"
 import Company from '../../artifacts/contracts/Company.sol/Company.json';
 import Button from '@mui/material/Button';
+import CardContent from '@mui/material/CardContent';
+
 
 
 class HomePage extends Component {
@@ -16,9 +18,10 @@ class HomePage extends Component {
         this.state = {
             activeStep: 0,
             walletConnected: false,
-            address: null,
-            flowRate: 0
+            address: null
         }
+        this.componentDidMount = this.componentDidMount.bind(this)
+        this.componentWillMount = this.componentWillMount.bind(this)
     }
 
     nextStep = () => {
@@ -26,8 +29,7 @@ class HomePage extends Component {
         this.setState({
             activeStep: this.state.activeStep + 1
         })
-        console.log(this.state.address)
-        console.log(this.state.walletConnected)
+
     }
 
     prevStep = () => {
@@ -67,6 +69,26 @@ class HomePage extends Component {
             console.log(account)
         } catch (e) {
             console.error("Error when requesting user's MetaMask account", e);
+            this.setState({
+                walletConnected: false
+            })
+        }
+    }
+
+    componentWillMount() {
+        try {
+            const account = window.ethereum.selectedAddress
+            let wallet_connected = (account !== null)
+            this.setState({
+                address: account,
+                walletConnected: wallet_connected
+            })
+            console.log(account)
+        } catch (e) {
+            console.error("Error when requesting user's MetaMask account", e);
+            this.setState({
+                walletConnected: false
+            })
         }
     }
 
@@ -106,7 +128,6 @@ class HomePage extends Component {
                             connectWallet={this.handleWalletBtnClick}
                             address={this.state.address}
                             walletConnected={this.state.walletConnected}
-                            flowRate={this.state.flowRate}
                         />
                     </Card>
                 </div>

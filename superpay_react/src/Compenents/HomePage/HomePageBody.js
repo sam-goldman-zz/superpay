@@ -51,10 +51,10 @@ class HomePageBody extends Component {
         });
     }
 
-    calculateFlowRate = (amount) => {
-        const monthlyAmount = ethers.utils.formatEther(amount.toString());
-        const calculatedFlowRate = monthlyAmount * 3600 * 24 * 30;
-        return calculatedFlowRate;
+    calculateYearlyAmount = (flowRate) => {
+        const amount = ethers.utils.formatEther(flowRate.toString());
+        const yearlyAmount = amount * 3600 * 24 * 30 * 12;
+        return yearlyAmount;
     }
 
     verifyPayrollContract = async () => {
@@ -76,11 +76,11 @@ class HomePageBody extends Component {
                 })
                 return;
             } else {
-                const amount = await contract.salaryAmt(this.state.address);
-                const flowRate = calculateFlowRate(amount);
+                const flowRate = await contract.salaryAmt(this.state.address);
+                const yearlyAmount = calculateYearlyAmount(flowRate);
                 this.setState({
-                    flowRate: flowRate,
-                    yearlySalary: yearlySalary
+                    flowRate: flowRate.toString(),
+                    yearlySalary: yearlyAmount
                 })
             }
         } catch (e) {

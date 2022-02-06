@@ -23,18 +23,18 @@ class NavButtons extends Component {
     render() {
         if (this.state.activeStep === 0) {
             return (
-                <Button onClick={() => this.props.onNext()}>
+                <Button variant='contained' onClick={() => this.props.onNext()}>
                     Next
                 </Button>
             )
         }
-        if (this.state.activeStep > 0 & this.state.activeStep < 3) {
+        if (this.state.activeStep > 0 & this.state.activeStep < 2) {
             return (
                 <div>
-                    <Button onClick={() => this.props.onPrev()}>
+                    <Button variant='contained' onClick={() => this.props.onPrev()}>
                         Back
                     </Button>
-                    <Button onClick={() => this.props.onNext()}>
+                    <Button variant='contained' onClick={() => this.props.onNext()}>
                         Next
                     </Button>
                 </div>
@@ -43,7 +43,7 @@ class NavButtons extends Component {
         else {
             return (
                 <div>
-                    <Button onClick={() => this.props.onPrev()}>
+                    <Button variant='contained' onClick={() => this.props.onPrev()}>
                         Back
                     </Button>
                 </div>

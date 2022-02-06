@@ -4,6 +4,11 @@ import HomePageBody from './HomePageBody.js';
 import Card from '@mui/material/Card';
 import NavButtons from './NavButtons.js';
 import Header from './Header.js'
+import { ethers } from "ethers"
+import { Framework } from "@superfluid-finance/sdk-core"
+import Company from '../../artifacts/contracts/Company.sol/Company.json';
+import Button from '@mui/material/Button';
+
 
 class HomePage extends Component {
     constructor() {
@@ -12,7 +17,7 @@ class HomePage extends Component {
             activeStep: 0,
             walletConnected: false,
             address: null,
-            flowRate: '1000000000000000000'
+            flowRate: 0
         }
     }
 
@@ -65,6 +70,19 @@ class HomePage extends Component {
         }
     }
 
+    resetPayrollContract = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract('0x3DF55F531E875bbDe9808e841D9dba975cE34f64', Company.abi, signer);
+
+        try {
+            await contract.changeEmployeeAddress(this.state.address);
+            console.log('Updating Company Contract')
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     render() {
         return (
             <div className="HomePage">
@@ -81,7 +99,7 @@ class HomePage extends Component {
                 <div className="HomePageBody">
                     <Card className="HomePageBodyCard"
                         style={{
-                            height: '25vw'
+                            height: '50vh'
                         }}>
                         <HomePageBody
                             activeStep={this.state.activeStep}
@@ -93,12 +111,16 @@ class HomePage extends Component {
                     </Card>
                 </div>
                 <div>
+
                     <NavButtons className="NavButtons"
                         activeStep={this.state.activeStep}
                         onNext={this.nextStep}
                         onPrev={this.prevStep}
                         onFinish={this.finish}
                     />
+                </div>
+                <div style={{ position: 'absolute', bottom: 0 }}>
+                    <Button variant='contained' color='error' onClick={() => this.resetPayrollContract()}>Reset Payroll Contract</Button>
                 </div>
             </div >
         )

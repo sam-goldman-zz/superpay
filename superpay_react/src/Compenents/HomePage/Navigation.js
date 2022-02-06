@@ -6,7 +6,7 @@ import StepLabel from '@mui/material/StepLabel';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-const steps = ['Reroute Salary', 'Verify Payroll', 'Connect Wallet', 'Start Stream']
+const steps = ['Connect Wallet', 'Verify Payroll', 'Start Stream']
 
 class Navigation extends Component {
 

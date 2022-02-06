@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import { ethers } from "ethers"
 import { Framework } from "@superfluid-finance/sdk-core"
 import Tooltip from '@mui/material/Tooltip';
+import Company from '../../artifacts/contracts/Company.sol/Company.json';
 
 
 class HomePageBody extends Component {
@@ -18,11 +19,17 @@ class HomePageBody extends Component {
             walletConnected: this.props.walletConnected,
             flowRate: this.props.flowRate,
             streamAddress: null,
-            superfluidAddress: "0xYEET69420",
-            copiedAddress: false
+            superfluidAddress: "0xCeba7CC9b04696E0Da583Ac1d59C59e6564F9a7B",
+            copiedAddress: false,
+            companyAddress: "",
+            succesfulContractUpdate: false,
+            yearlySalary: 0,
+            verificationError: false,
+            verificationErrorMessage: ""
         }
         this.UNSAFE_componentWillReceiveProps = this.UNSAFE_componentWillReceiveProps.bind(this)
         this.startStream = this.startStream.bind(this)
+        this.updateCompanyAddress = this.updateCompanyAddress.bind(this)
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -36,7 +43,67 @@ class HomePageBody extends Component {
         }
     }
 
+    updateCompanyAddress(event) {
+        var companyAddress = event.target.value;
+
+        this.setState({
+            companyAddress: companyAddress
+        });
+    }
+
+    verifyPayrollContract = async () => {
+        this.setState({
+            verificationError: false
+        })
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(this.state.companyAddress, Company.abi, signer);
+
+        try {
+            const employeeAddress = await contract.salaryAmt(this.state.address);
+            if (employeeAddress.toNumber() === 0) {
+                console.log("Employee address is not in the Company's smart contract!");
+                this.setState({
+                    verificationError: true,
+                    verificationErrorMessage: "Employee address is not in the Company's smart contract!"
+                })
+                return;
+            } else {
+                const yearlySalary = await contract.salaryAmt(this.state.address);
+                const secondsInYear = 31536000;
+                const etherInUsd = 3000;
+                const newFlowRate = 10 ** 18 * yearlySalary / (etherInUsd * secondsInYear); // Converts USD/yr to Wei/sec
+                // this.setstate flowrate
+                this.setState({
+                    flowRate: newFlowRate,
+                    yearlySalary: yearlySalary
+                })
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    changeEmployeeAddress = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(this.state.companyAddress, Company.abi, signer);
+
+        try {
+            await contract.changeEmployeeAddress(this.state.superfluidAddress);
+            console.log('Updating Company Contract')
+            this.setState({
+                succesfulContractUpdate: true
+            })
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     startStream = async () => {
+        this.changeEmployeeAddress();
+
         const provider = new ethers.providers.JsonRpcProvider("https://eth-kovan.alchemyapi.io/v2/nl2PDNZm065-H3wMj2z1_mvGP81bLfqX");
         console.log(provider)
 
@@ -97,63 +164,80 @@ class HomePageBody extends Component {
 
     render() {
 
-        if (this.state.activeStep === 0) {
+        if (this.state.activeStep === 0 & !this.state.walletConnected) {
             return (
                 <CardContent>
                     <h1>Step 1</h1>
-                    <h2>Contact your employer and reroute your salary to Superpay.</h2>
-                    <Tooltip title={this.state.copiedAddress ? "Address copied to clipboard" : "Click to copy address"} placement="right">
-                        <Button variant="contained" style={{ height: '10vh', width: '30vw', "font-size": '3vh' }} onClick={() => { this.copyAddress() }}>{this.state.superfluidAddress}</Button>
-                    </Tooltip>
-                </CardContent>
-            )
-        }
-        if (this.state.activeStep === 1) {
-            return (
-                <CardContent>
-                    <h1>Step 2</h1>
-                    <h2>Input the payroll contract for verification.</h2>
-                    <TextField label="Contract Address" variant="filled" />
-                </CardContent>
-            )
-        }
-        if (this.state.activeStep === 2 & !this.state.walletConnected) {
-            return (
-                <CardContent>
-                    <h1>Step 3</h1>
                     <p>Connect your wallet.</p>
                     <Button onClick={() => this.props.connectWallet()} variant="contained">Connect Wallet</Button>
                 </CardContent>
             )
         }
-        if (this.state.activeStep === 2 & this.state.walletConnected) {
+        if (this.state.activeStep === 0 & this.state.walletConnected) {
             return (
                 <CardContent>
-                    <h1>Step 3</h1>
-                    <h2>Connect your wallet.</h2>
-                    <p>Wallet with address {this.state.address} is currently connected.</p>
+                    <h1>Step 1</h1>
+                    <h2>Wallet address {this.state.address.substring(0, 7)}... is currently connected.</h2>
                 </CardContent>
             )
         }
-        if (this.state.activeStep === 3) {
+        if (this.state.activeStep === 1 & !this.state.succesfulContractUpdate & !this.state.verificationError) {
             return (
                 <CardContent>
-                    <h1>Step 4</h1>
+                    <h1>Step 2</h1>
+                    <h2>Input the payroll contract for verification.</h2>
+                    <div>
+                        <TextField label="Contract Address" variant="filled" onChange={this.updateCompanyAddress} />
+                    </div>
+                    <div>
+                        <Button variant="contained" onClick={() => this.verifyPayrollContract()}>Verify</Button>
+                    </div>
+                </CardContent>
+            )
+        }
+        if (this.state.activeStep === 1 & this.state.succesfulContractUpdate) {
+            return (
+                <CardContent>
+                    <h1>Step 2</h1>
+                    <h2>Contract {this.state.companyAddress} succesfully verified.</h2>
+                </CardContent>
+            )
+        }
+        if (this.state.activeStep === 1 & this.state.verificationError) {
+            return (
+                <CardContent>
+                    <h1>Step 2</h1>
+                    <h2>{this.state.verificationErrorMessage}</h2>
+                    <h3>Please resolve the error and try again.</h3>
+                    <div>
+                        <TextField label="Contract Address" variant="filled" onChange={this.updateCompanyAddress} />
+                    </div>
+                    <div>
+                        <Button variant="contained" onClick={() => this.verifyPayrollContract()}>Verify</Button>
+                    </div>
+                </CardContent>
+            )
+        }
+
+        if (this.state.activeStep === 2) {
+            return (
+                <CardContent>
+                    <h1>Step 3</h1>
                     <h2>Confirm the details and begin stream.</h2>
                     <h3>Pay to: {this.state.address}</h3>
-                    <h3>Flow Rate: {this.state.flowRate}</h3>
+                    <h3>Annual Salary: ${this.state.yearlySalary} / year</h3>
                     <Button variant="contained"
                         onClick={() => this.startStream()}>
                         Start Stream</Button>
                 </CardContent>
             )
         }
-        if (this.state.activeStep === 4 & this.state.streamAddress !== null) {
+        if (this.state.activeStep === 3 & this.state.streamAddress !== null) {
             console.log(this.state.streamAddress)
             return (
                 <CardContent>
                     <h1>Stream Activated!</h1>
-                    <Button href={this.state.streamAddress}>See your stream live on Superfluid</Button>
+                    <Button href={this.state.streamAddress} target="_blank">See your stream live on Superfluid</Button>
                 </CardContent>
             )
         }

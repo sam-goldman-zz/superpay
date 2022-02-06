@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract Company is Ownable {
 
-    using SafeMath for uint;
+    using Math for uint;
     using SafeERC20 for IERC20;
 
     address public paymentToken;
@@ -33,16 +33,16 @@ contract Company is Ownable {
     } 
 
     function ChangeSalaryAmount(address _employee, uint _amt) external onlyOwner {
-        return salaryFreq[_employee] = _amt;
+        salaryFreq[_employee] = _amt;
     } 
 
     function Deposit(address _token, uint _amount) external {
         require(_token==paymentToken, "Payment system can only accept USDC." );
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     function PayEmployee(address _employee) external onlyOwner {
-        IERC20(_token).safeTransfer(paymentToken, _employee, ceilDiv(salaryAmt, salaryFreq));
+        IERC20(paymentToken).safeTransfer(_employee, Math.ceilDiv(salaryAmt[_employee], salaryFreq[_employee]));
     }
 
     function ChangeEmployeeAddress(address _former, address _new) external {

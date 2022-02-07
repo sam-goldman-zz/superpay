@@ -15,8 +15,8 @@ class HomePageBody extends Component {
         super(props);
         this.state = {
             activeStep: this.props.activeStep,
-            address: this.props.address,
-            walletConnected: this.props.walletConnected,
+            address: "",
+            walletConnected: false,
             flowRate: "",
             streamAddress: null,
             superfluidAddress: "0xCeba7CC9b04696E0Da583Ac1d59C59e6564F9a7B",
@@ -32,14 +32,33 @@ class HomePageBody extends Component {
         this.startStream = this.startStream.bind(this)
         this.updateCompanyAddress = this.updateCompanyAddress.bind(this)
         this.verifyPayrollContract = this.verifyPayrollContract.bind(this)
+        this.handleWalletBtnClick = this.handleWalletBtnClick.bind(this)
+        this.componentDidMount = this.componentDidMount.bind(this)
+    }
+
+    componentDidMount() {
+        try {
+            const account = window.ethereum.selectedAddress
+            let wallet_connected = (account !== null)
+            console.log(wallet_connected)
+            this.setState({
+                address: account,
+                walletConnected: wallet_connected
+            })
+            console.log(account)
+        } catch (e) {
+            console.error("Error when requesting user's MetaMask account", e);
+            this.setState({
+                address: "",
+                walletConnected: false
+            })
+        }
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (this.state.activeStep !== nextProps.activeStep) {
             this.setState({
-                activeStep: nextProps.activeStep,
-                address: nextProps.address,
-                walletConnected: nextProps.walletConnected
+                activeStep: nextProps.activeStep
             })
         }
     }
@@ -52,10 +71,23 @@ class HomePageBody extends Component {
         });
     }
 
-    calculateFlowRate = (amount) => {
-        const monthlyAmount = ethers.utils.formatEther(amount.toString());
-        const calculatedFlowRate = monthlyAmount * 3600 * 24 * 30;
-        return calculatedFlowRate;
+    calculateYearlyAmount = (flowRate) => {
+        const amount = ethers.utils.formatEther(flowRate.toString());
+        const yearlyAmount = amount * 3600 * 24 * 30 * 12;
+        return yearlyAmount;
+    }
+
+    handleWalletBtnClick = async () => {
+        console.log('Wallet')
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            this.setState({
+                address: accounts[0],
+                walletConnected: true
+            })
+        } catch (e) {
+            console.error("Error when requesting user's MetaMask account", e);
+        }
     }
 
     verifyPayrollContract = async () => {
@@ -79,11 +111,11 @@ class HomePageBody extends Component {
                 })
                 return;
             } else {
-                const amount = await contract.salaryAmt(this.state.address);
-                const flowRate = this.calculateFlowRate(amount);
+                const flowRate = await contract.salaryAmt(this.state.address);
+                const yearlyAmount = this.calculateYearlyAmount(flowRate);
                 this.setState({
-                    flowRate: flowRate,
-                    yearlySalary: amount
+                    flowRate: flowRate.toString(),
+                    yearlySalary: yearlyAmount
                 })
             }
         } catch (e) {
@@ -172,8 +204,11 @@ class HomePageBody extends Component {
             return (
                 <CardContent>
                     <h1>Step 1</h1>
-                    <p>Connect your wallet.</p>
-                    <Button onClick={() => this.props.connectWallet()} variant="contained">Connect Wallet</Button>
+                    <h2>Connect your wallet.</h2>
+                    <p>This will allow us to verify your wallet is the payroll recipient, and send the stream to the correct destination.</p>
+                    <div style={{ paddingTop: '5vh' }}>
+                        <Button onClick={() => this.handleWalletBtnClick()} variant="contained">Connect Wallet</Button>
+                    </div>
                 </CardContent>
             )
         }
@@ -190,10 +225,11 @@ class HomePageBody extends Component {
                 <CardContent>
                     <h1>Step 2</h1>
                     <h2>Input the payroll contract for verification.</h2>
-                    <div>
+                    <p>We will query the contract to verify you are the designated recipient and also confirm the payment amount.</p>
+                    <div style={{ paddingTop: '5vh' }}>
                         <TextField label="Contract Address" variant="filled" onChange={this.updateCompanyAddress} />
                     </div>
-                    <div>
+                    <div style={{ padding: '10px' }}>
                         <Button variant="contained" onClick={() => this.verifyPayrollContract()}>Verify</Button>
                     </div>
                 </CardContent>
@@ -241,7 +277,7 @@ class HomePageBody extends Component {
             return (
                 <CardContent>
                     <h1>Stream Activated!</h1>
-                    <Button href={this.state.streamAddress} target="_blank">See your stream live on Superfluid</Button>
+                    <Button variant='contained' href={this.state.streamAddress} target="_blank">See your stream live on Superfluid</Button>
                 </CardContent>
             )
         }

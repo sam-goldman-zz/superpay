@@ -17,15 +17,10 @@ class HomePage extends Component {
         super();
         this.state = {
             activeStep: 0,
-            walletConnected: false,
-            address: null
         }
-        this.componentDidMount = this.componentDidMount.bind(this)
-        this.componentWillMount = this.componentWillMount.bind(this)
     }
 
     nextStep = () => {
-        console.log("Calling Next Step")
         this.setState({
             activeStep: this.state.activeStep + 1
         })
@@ -33,63 +28,15 @@ class HomePage extends Component {
     }
 
     prevStep = () => {
-        console.log("Calling Prev Step")
         this.setState({
             activeStep: this.state.activeStep - 1
         })
     }
 
     finish = () => {
-        console.log("Calling Finish")
         this.setState({
             activeStep: this.state.activeStep + 1
         })
-    }
-
-    handleWalletBtnClick = async () => {
-        console.log('Wallet')
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            this.setState({
-                address: accounts[0]
-            })
-        } catch (e) {
-            console.error("Error when requesting user's MetaMask account", e);
-        }
-    }
-
-    componentDidMount() {
-        try {
-            const account = window.ethereum.selectedAddress
-            let wallet_connected = (account !== null)
-            this.setState({
-                address: account,
-                walletConnected: wallet_connected
-            })
-            console.log(account)
-        } catch (e) {
-            console.error("Error when requesting user's MetaMask account", e);
-            this.setState({
-                walletConnected: false
-            })
-        }
-    }
-
-    componentWillMount() {
-        try {
-            const account = window.ethereum.selectedAddress
-            let wallet_connected = (account !== null)
-            this.setState({
-                address: account,
-                walletConnected: wallet_connected
-            })
-            console.log(account)
-        } catch (e) {
-            console.error("Error when requesting user's MetaMask account", e);
-            this.setState({
-                walletConnected: false
-            })
-        }
     }
 
     resetPayrollContract = async () => {
@@ -109,9 +56,7 @@ class HomePage extends Component {
         return (
             <div className="HomePage">
                 <div className="Header">
-                    <Header
-                        walletConnected={this.state.walletConnected}
-                        address={this.state.address} />
+                    <Header />
                 </div>
                 <div className="Navigation">
                     <Navigation
@@ -125,9 +70,6 @@ class HomePage extends Component {
                         }}>
                         <HomePageBody
                             activeStep={this.state.activeStep}
-                            connectWallet={this.handleWalletBtnClick}
-                            address={this.state.address}
-                            walletConnected={this.state.walletConnected}
                         />
                     </Card>
                 </div>

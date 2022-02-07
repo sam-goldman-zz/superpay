@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
+import superpay from '../../superpay.png'
 
 
 
@@ -34,14 +35,7 @@ class Header extends Component {
             <AppBar position="static">
                 <Container maxWidth="xl">
                     <Toolbar disableGutters>
-                        <Typography
-                            variant="h6"
-                            noWrap
-                            component="div"
-                            sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
-                        >
-                            Superpay
-                        </Typography>
+                        <img src={superpay} height="90" width="240" ></img>
                         <Box sx={{ flexGrow: 0 }}>
                             <Tooltip title="Open settings">
                                 <Typography>

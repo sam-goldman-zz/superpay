@@ -51,12 +51,6 @@ class HomePageBody extends Component {
         });
     }
 
-    calculateYearlyAmount = (flowRate) => {
-        const amount = ethers.utils.formatEther(flowRate.toString());
-        const yearlyAmount = amount * 3600 * 24 * 30 * 12;
-        return yearlyAmount;
-    }
-
     verifyPayrollContract = async () => {
         this.setState({
             verificationError: false
@@ -76,11 +70,11 @@ class HomePageBody extends Component {
                 })
                 return;
             } else {
-                const flowRate = await contract.salaryAmt(this.state.address);
-                const yearlyAmount = calculateYearlyAmount(flowRate);
+                const yearlySalary = await contract.salaryAmt(this.state.address);
+                const flowRate = parseInt(Number(yearlyAmount) / 32150205761.3); // USD/yr to Wei/sec conversion
                 this.setState({
                     flowRate: flowRate.toString(),
-                    yearlySalary: yearlyAmount
+                    yearlySalary: Number(yearlySalary)
                 })
             }
         } catch (e) {

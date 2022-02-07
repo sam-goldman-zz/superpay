@@ -45,7 +45,7 @@ class HomePage extends Component {
         const contract = new ethers.Contract('0x3DF55F531E875bbDe9808e841D9dba975cE34f64', Company.abi, signer);
 
         try {
-            await contract.changeEmployeeAddress(this.state.address);
+            await contract.changeEmployeeAddress('0x348BB4384a4DB78e9CFb85848d0B43d37AE87f1D');
             console.log('Updating Company Contract')
         } catch (e) {
             console.error(e);

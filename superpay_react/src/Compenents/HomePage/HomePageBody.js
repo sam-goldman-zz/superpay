@@ -55,6 +55,22 @@ class HomePageBody extends Component {
         }
     }
 
+    handleWalletBtnClick = async () => {
+        console.log('Wallet')
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            this.setState({
+                address: accounts[0],
+                walletConnected: true
+            })
+        } catch (e) {
+            console.error("Error when requesting user's MetaMask account", e);
+            this.setState({
+                walletConnected: false
+            })
+        }
+    }
+
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (this.state.activeStep !== nextProps.activeStep) {
             this.setState({
@@ -69,25 +85,6 @@ class HomePageBody extends Component {
         this.setState({
             companyAddress: companyAddress
         });
-    }
-
-    calculateYearlyAmount = (flowRate) => {
-        const amount = ethers.utils.formatEther(flowRate.toString());
-        const yearlyAmount = amount * 3600 * 24 * 30 * 12;
-        return yearlyAmount;
-    }
-
-    handleWalletBtnClick = async () => {
-        console.log('Wallet')
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            this.setState({
-                address: accounts[0],
-                walletConnected: true
-            })
-        } catch (e) {
-            console.error("Error when requesting user's MetaMask account", e);
-        }
     }
 
     verifyPayrollContract = async () => {
@@ -111,11 +108,12 @@ class HomePageBody extends Component {
                 })
                 return;
             } else {
-                const flowRate = await contract.salaryAmt(this.state.address);
-                const yearlyAmount = this.calculateYearlyAmount(flowRate);
+                const yearlySalary = await contract.salaryAmt(this.state.address);
+                const flowRate = parseInt(Number(yearlySalary) * 32150205761.3); // USD/yr to Wei/sec conversion
                 this.setState({
+                    succesfulContractVerification: true,
                     flowRate: flowRate.toString(),
-                    yearlySalary: yearlyAmount
+                    yearlySalary: Number(yearlySalary)
                 })
             }
         } catch (e) {
